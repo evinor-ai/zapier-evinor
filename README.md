@@ -118,8 +118,18 @@ The signature verifier in `lib/verifier.js` is vendored from
 CommonJS, with the header change described above. The golden fixtures in `test/fixtures/` are
 copied from Evinor's envelope library; regenerate them there, never by hand.
 
-`.zapierapprc` links this repo to the Evinor integration (app 249760). Pushing and promoting
-versions are release steps for maintainers.
+`.zapierapprc` links this repo to the Evinor integration (app 249760).
+
+## Releasing
+
+CI runs the tests and `zapier-platform validate` on every pull request. Neither needs a Zapier
+login.
+
+To push a version, bump `version` in `package.json` and `CHANGELOG.md` on `main`, then push a
+matching tag (`v1.2.3`). The Deploy workflow checks that the tag equals the `package.json` version
+and is on `main`, runs the tests, and after a reviewer approves the `zapier-deploy` environment,
+runs `zapier-platform push`. Pushing does not move users to the new version: run
+`zapier-platform promote <version>` by hand when it should go live.
 
 ## License
 
