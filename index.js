@@ -5,6 +5,7 @@ const { befores, afters } = require('./lib/middleware');
 const dropdowns = require('./triggers/dropdowns');
 const newSensorEvent = require('./triggers/newSensorEvent');
 const newBeatEntry = require('./triggers/newBeatEntry');
+const findEntity = require('./searches/findEntity');
 
 module.exports = {
   version: require('./package.json').version,
@@ -24,6 +25,8 @@ module.exports = {
     [dropdowns.beat.key]: dropdowns.beat,
     [dropdowns.eventType.key]: dropdowns.eventType,
   },
-  searches: {},
+  searches: {
+    [findEntity.key]: findEntity,
+  },
   creates: {},
 };
