@@ -23,6 +23,8 @@
   },
   "scripts": {
     "test": "jest --testTimeout 10000",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "validate": "zapier-platform validate"
   },
   "dependencies": {
@@ -30,7 +32,8 @@
   },
   "devDependencies": {
     "jest": "29.7.0",
-    "nock": "14.0.17"
+    "nock": "14.0.17",
+    "prettier": "3.6.2"
   },
   "jest": {
     "testEnvironment": "node",

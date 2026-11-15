@@ -94,7 +94,11 @@ const roleValue = (z, role, inputData) => {
     case 'date': {
       const date = /^\d{4}-\d{2}-\d{2}/.exec(text)?.[0];
       if (date === undefined) {
-        throw new z.errors.Error(`${role.code_name} must be a date in YYYY-MM-DD form.`, 'InvalidInput', 400);
+        throw new z.errors.Error(
+          `${role.code_name} must be a date in YYYY-MM-DD form.`,
+          'InvalidInput',
+          400,
+        );
       }
       return { role: role.code_name, date };
     }
@@ -104,7 +108,10 @@ const roleValue = (z, role, inputData) => {
         throw new z.errors.Error(`${role.code_name} must be a number.`, 'InvalidInput', 400);
       }
       const unit = inputData[`${ROLE_PREFIX}${role.code_name}${UNIT_SUFFIX}`];
-      return { role: role.code_name, amount: { value, unit: isBlank(unit) ? '' : String(unit).trim() } };
+      return {
+        role: role.code_name,
+        amount: { value, unit: isBlank(unit) ? '' : String(unit).trim() },
+      };
     }
     default:
       return { role: role.code_name, text };
@@ -117,7 +124,9 @@ const roleValue = (z, role, inputData) => {
  * inputs therefore file one report, ever (design Decision 7).
  */
 const idempotencyKey = (material) => {
-  const defined = Object.fromEntries(Object.entries(material).filter(([, value]) => value !== undefined));
+  const defined = Object.fromEntries(
+    Object.entries(material).filter(([, value]) => value !== undefined),
+  );
   return createHash('sha256').update(canonicalizeJcs(defined), 'utf8').digest('hex');
 };
 
@@ -202,7 +211,8 @@ module.exports = {
         label: 'Happened At',
         type: 'datetime',
         required: true,
-        helpText: 'When the event happened, as an ISO-8601 timestamp. It must not be in the future.',
+        helpText:
+          'When the event happened, as an ISO-8601 timestamp. It must not be in the future.',
       },
       roleInputFields,
       {
@@ -218,7 +228,8 @@ module.exports = {
         type: 'string',
         required: false,
         helpText:
-          'Optional. Never sent to Evinor; it only changes which inputs count as identical. ' + IDEMPOTENCY_HELP,
+          'Optional. Never sent to Evinor; it only changes which inputs count as identical. ' +
+          IDEMPOTENCY_HELP,
       },
     ],
     perform,

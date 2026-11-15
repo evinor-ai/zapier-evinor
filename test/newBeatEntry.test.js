@@ -54,7 +54,13 @@ describe('New Beat Entry (task 4.3)', () => {
   it('reads the last 24h of entries, newest first, with the entry id as the item id', async () => {
     const scope = api()
       .post(`/v1/beats/${BEAT_ID}/entries`, { last: '24h', limit: 50 })
-      .reply(200, page([entry('e2', event('ev2', 'Globex cut 50 jobs.')), entry('e1', event('ev1', 'TechCorp laid off 200 people.'))]));
+      .reply(
+        200,
+        page([
+          entry('e2', event('ev2', 'Globex cut 50 jobs.')),
+          entry('e1', event('ev1', 'TechCorp laid off 200 people.')),
+        ]),
+      );
 
     const result = await appTester(trigger().operation.perform, bundle());
     expect(scope.isDone()).toBe(true);

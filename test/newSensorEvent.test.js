@@ -64,7 +64,11 @@ const resign = (envelope) => {
 
 /** No z.console call may carry subscribeData, the secret or any part of the envelope. */
 const expectNothingSecretLogged = (calls, envelope = golden.envelope) => {
-  const logged = calls.map((args) => args.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg))).join(' ')).join('\n');
+  const logged = calls
+    .map((args) =>
+      args.map((arg) => (typeof arg === 'string' ? arg : JSON.stringify(arg))).join(' '),
+    )
+    .join('\n');
   for (const needle of [
     golden.secret,
     golden.keyId,
@@ -90,7 +94,11 @@ describe('New Sensor Event: definition', () => {
     expect(trigger().operation.type).toBe('hook');
     expect(trigger().display.hidden).toBeFalsy();
     const [sensorField] = trigger().operation.inputFields;
-    expect(sensorField).toMatchObject({ key: 'sensor_id', required: true, dynamic: 'sensor.id.name' });
+    expect(sensorField).toMatchObject({
+      key: 'sensor_id',
+      required: true,
+      dynamic: 'sensor.id.name',
+    });
   });
 });
 
@@ -145,9 +153,13 @@ describe('performSubscribe', () => {
   });
 
   it('fails when the response carries no signing details', async () => {
-    api()
-      .post(`/v1/sensors/${SENSOR_ID}/destinations`)
-      .reply(201, { id: 'dest-1', type: 'connected_app', app: 'zapier', url: TARGET_URL, status: 'connected' });
+    api().post(`/v1/sensors/${SENSOR_ID}/destinations`).reply(201, {
+      id: 'dest-1',
+      type: 'connected_app',
+      app: 'zapier',
+      url: TARGET_URL,
+      status: 'connected',
+    });
 
     await expect(
       appTester(trigger().operation.performSubscribe, {
@@ -168,7 +180,9 @@ describe('performUnsubscribe', () => {
 
   it('disconnects the stored destination', async () => {
     const scope = api().delete(`/v1/sensors/${SENSOR_ID}/destinations/dest-1`).reply(204);
-    await expect(appTester(trigger().operation.performUnsubscribe, bundle())).resolves.toBeDefined();
+    await expect(
+      appTester(trigger().operation.performUnsubscribe, bundle()),
+    ).resolves.toBeDefined();
     expect(scope.isDone()).toBe(true);
   });
 
@@ -176,14 +190,20 @@ describe('performUnsubscribe', () => {
     const scope = api()
       .delete(`/v1/sensors/${SENSOR_ID}/destinations/dest-1`)
       .reply(404, problem(404, 'not-found', 'Not found.'), PROBLEM_HEADERS);
-    await expect(appTester(trigger().operation.performUnsubscribe, bundle())).resolves.toBeDefined();
+    await expect(
+      appTester(trigger().operation.performUnsubscribe, bundle()),
+    ).resolves.toBeDefined();
     expect(scope.isDone()).toBe(true);
   });
 
   it('surfaces any other failure', async () => {
     api()
       .delete(`/v1/sensors/${SENSOR_ID}/destinations/dest-1`)
-      .reply(403, problem(403, 'missing-scope', 'This API key lacks SENSORS_WRITE.'), PROBLEM_HEADERS);
+      .reply(
+        403,
+        problem(403, 'missing-scope', 'This API key lacks SENSORS_WRITE.'),
+        PROBLEM_HEADERS,
+      );
     await expect(appTester(trigger().operation.performUnsubscribe, bundle())).rejects.toThrow(
       'This API key lacks SENSORS_WRITE.',
     );
@@ -211,7 +231,9 @@ describe('perform: verification (design Decision 4)', () => {
   });
 
   it('ACCEPTS a valid body with no signature header (departure from n8n)', async () => {
-    const { result } = await runPerform(deliveryBundle({ headers: { 'Content-Type': 'application/json' } }));
+    const { result } = await runPerform(
+      deliveryBundle({ headers: { 'Content-Type': 'application/json' } }),
+    );
     expect(result).toHaveLength(1);
   });
 
@@ -255,7 +277,14 @@ describe('perform: verification (design Decision 4)', () => {
     ],
     [
       'key-id-mismatch',
-      () => deliveryBundle({ envelope: resign(Object.assign(structuredClone(golden.envelope), { sender: { ...golden.envelope.sender, keyId: 'rule-other:1' } })) }),
+      () =>
+        deliveryBundle({
+          envelope: resign(
+            Object.assign(structuredClone(golden.envelope), {
+              sender: { ...golden.envelope.sender, keyId: 'rule-other:1' },
+            }),
+          ),
+        }),
     ],
     [
       'bad-mac',
@@ -267,32 +296,59 @@ describe('perform: verification (design Decision 4)', () => {
     ],
     [
       'bad-timestamp',
-      () => deliveryBundle({ envelope: resign(Object.assign(structuredClone(golden.envelope), { timestamp: '2026-04-01T11:54:59.999Z' })) }),
+      () =>
+        deliveryBundle({
+          envelope: resign(
+            Object.assign(structuredClone(golden.envelope), {
+              timestamp: '2026-04-01T11:54:59.999Z',
+            }),
+          ),
+        }),
     ],
     [
       'bad-timestamp',
-      () => deliveryBundle({ envelope: resign(Object.assign(structuredClone(golden.envelope), { timestamp: '2026-04-01T12:05:00.001Z' })) }),
+      () =>
+        deliveryBundle({
+          envelope: resign(
+            Object.assign(structuredClone(golden.envelope), {
+              timestamp: '2026-04-01T12:05:00.001Z',
+            }),
+          ),
+        }),
     ],
     [
       'bad-timestamp',
-      () => deliveryBundle({ envelope: resign(Object.assign(structuredClone(golden.envelope), { timestamp: 'April 1, 2026 12:00:00 UTC' })) }),
+      () =>
+        deliveryBundle({
+          envelope: resign(
+            Object.assign(structuredClone(golden.envelope), {
+              timestamp: 'April 1, 2026 12:00:00 UTC',
+            }),
+          ),
+        }),
     ],
   ];
 
-  it.each(failing)('returns [] without throwing and logs only the step name (%s)', async (reason, build) => {
-    const bundle = build();
-    const { result, calls } = await runPerform(bundle);
-    expect(result).toEqual([]);
-    expect(calls).toHaveLength(1);
-    expect(calls[0].join(' ')).toContain(reason);
-    expectNothingSecretLogged(calls, bundle.cleanedRequest ?? golden.envelope);
-  });
+  it.each(failing)(
+    'returns [] without throwing and logs only the step name (%s)',
+    async (reason, build) => {
+      const bundle = build();
+      const { result, calls } = await runPerform(bundle);
+      expect(result).toEqual([]);
+      expect(calls).toHaveLength(1);
+      expect(calls[0].join(' ')).toContain(reason);
+      expectNothingSecretLogged(calls, bundle.cleanedRequest ?? golden.envelope);
+    },
+  );
 
   it('never throws, even on hostile input', async () => {
     const depth = 200000;
     const bundle = deliveryBundle();
     const envelope = JSON.stringify({ ...golden.envelope, payload: '__NESTED__' });
-    bundle.rawRequest.content = envelope.replace('"__NESTED__"', `${'['.repeat(depth)}1${']'.repeat(depth)}`);
+    bundle.rawRequest.content = envelope.replace(
+      '"__NESTED__"',
+      `${'['.repeat(depth)}1${']'.repeat(depth)}`,
+    );
     bundle.cleanedRequest = undefined;
     const { result, calls } = await runPerform(bundle);
     expect(result).toEqual([]);

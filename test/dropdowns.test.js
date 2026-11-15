@@ -7,7 +7,6 @@ const { authData, api } = require('./helpers');
 
 const appTester = zapier.createAppTester(App);
 
-
 /** Runs a perform with an in-memory z.cursor (the local tester has no cursor RPC). */
 const runWithCursor = (perform, bundle, store) =>
   appTester((z, b) => {
@@ -79,7 +78,9 @@ describe('hidden dropdown triggers (task 4.1)', () => {
     api()
       .get('/v1/event-types')
       .reply(200, {
-        data: [{ id: 'et1', object: 'event_type', code_name: 'LAYOFF', name: 'Layoffs', roles: [] }],
+        data: [
+          { id: 'et1', object: 'event_type', code_name: 'LAYOFF', name: 'Layoffs', roles: [] },
+        ],
         has_more: false,
         next_cursor: null,
       });

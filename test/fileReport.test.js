@@ -25,7 +25,12 @@ const eventTypes = {
         { code_name: 'CLOSING_DATE', name: 'Closing date', expected_type: 'DATE' },
         { code_name: 'ROUND', name: 'Round', expected_type: 'NONE' },
         { code_name: 'LEGACY', name: 'Legacy', expected_type: null },
-        { code_name: 'STAGE', name: 'Stage', expected_type: 'CATEGORICAL', allowed_values: ['SEED'] },
+        {
+          code_name: 'STAGE',
+          name: 'Stage',
+          expected_type: 'CATEGORICAL',
+          allowed_values: ['SEED'],
+        },
       ],
     },
   ],
@@ -116,7 +121,9 @@ describe('File a Report: fields (task 4.5)', () => {
 
   it('returns no role fields before an event type is chosen', async () => {
     const roleFields = create().operation.inputFields.find((field) => typeof field === 'function');
-    await expect(appTester(roleFields, { authData: authData(), inputData: {} })).resolves.toEqual([]);
+    await expect(appTester(roleFields, { authData: authData(), inputData: {} })).resolves.toEqual(
+      [],
+    );
   });
 
   it('help text says identical inputs file once and that zaps share a scope without zap.id', () => {
@@ -226,7 +233,9 @@ describe('File a Report: request (task 4.5)', () => {
     [409, 'report-already-submitted', 'This report was already submitted.'],
   ])('surfaces a %i %s problem detail', async (status, slug, detail) => {
     api().get('/v1/event-types').reply(200, eventTypes);
-    api().post('/v1/reports').reply(status, problem(status, slug, detail), PROBLEM_HEADERS);
+    api()
+      .post('/v1/reports')
+      .reply(status, problem(status, slug, detail), PROBLEM_HEADERS);
     await expect(
       appTester(create().operation.perform, { authData: authData(), inputData: inputData() }),
     ).rejects.toThrow(detail);

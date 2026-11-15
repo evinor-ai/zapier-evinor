@@ -30,7 +30,10 @@ describe('Find Entity (task 4.4)', () => {
   });
 
   it('returns an empty list when nothing matches, for search-or-continue', async () => {
-    api().get('/v1/entities/search').query(true).reply(200, { data: [], has_more: false, next_cursor: null });
+    api()
+      .get('/v1/entities/search')
+      .query(true)
+      .reply(200, { data: [], has_more: false, next_cursor: null });
     await expect(appTester(search().operation.perform, bundle('Nope'))).resolves.toEqual([]);
   });
 
@@ -38,7 +41,11 @@ describe('Find Entity (task 4.4)', () => {
     api()
       .get('/v1/entities/search')
       .query(true)
-      .reply(403, problem(403, 'missing-scope', 'This API key lacks REPORTS_READ.'), PROBLEM_HEADERS);
+      .reply(
+        403,
+        problem(403, 'missing-scope', 'This API key lacks REPORTS_READ.'),
+        PROBLEM_HEADERS,
+      );
     await expect(appTester(search().operation.perform, bundle())).rejects.toThrow(
       'This API key lacks REPORTS_READ.',
     );

@@ -45,7 +45,9 @@ const unsubscribe = async (z, bundle) => {
 
 /** The signature header, matched case-insensitively; undefined when absent. */
 const findSignatureHeader = (headers) => {
-  const entry = Object.entries(headers ?? {}).find(([key]) => key.toLowerCase() === SIGNATURE_HEADER);
+  const entry = Object.entries(headers ?? {}).find(
+    ([key]) => key.toLowerCase() === SIGNATURE_HEADER,
+  );
   return entry?.[1];
 };
 

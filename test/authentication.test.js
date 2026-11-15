@@ -7,7 +7,6 @@ const { API_KEY, authData, problem, PROBLEM_HEADERS, api } = require('./helpers'
 
 const appTester = zapier.createAppTester(App);
 
-
 describe('authentication (design Decision 7)', () => {
   it('is custom auth with one required password-type api_key field', () => {
     expect(App.authentication.type).toBe('custom');
@@ -67,7 +66,13 @@ describe('authentication (design Decision 7)', () => {
 
   it('help text names the scopes and says File a Report needs the sales-gated REPORTS_WRITE', () => {
     const { helpText } = App.authentication.fields[0];
-    for (const scope of ['SENSORS_READ', 'SENSORS_WRITE', 'BEATS_READ', 'REPORTS_READ', 'REPORTS_WRITE']) {
+    for (const scope of [
+      'SENSORS_READ',
+      'SENSORS_WRITE',
+      'BEATS_READ',
+      'REPORTS_READ',
+      'REPORTS_WRITE',
+    ]) {
       expect(helpText).toContain(scope);
     }
     expect(helpText).toMatch(/File a Report.*REPORTS_WRITE/s);
