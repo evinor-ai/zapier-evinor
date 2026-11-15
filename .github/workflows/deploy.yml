@@ -1,0 +1,107 @@
+# Pushes a new version of the Evinor integration to Zapier when a vX.Y.Z tag is
+# pushed.
+#
+# TRUST MODEL
+#
+# - ZAPIER_DEPLOY_KEY lives only in the `zapier-deploy` Environment, which is
+#   limited to v* tags and has a required reviewer. It is set through `env:` on
+#   the push step only, never on the job, so no install step can read it.
+# - Every install runs with --ignore-scripts, and the Zapier CLI is installed at
+#   a pinned version before the key is in any environment.
+# - `zapier-platform push --skip-dep-install` stops the CLI from running its own
+#   `npm install --production` while the key is set; the deploy job installs the
+#   production dependencies itself beforehand.
+# - Pushing a version does not move users to it. `zapier-platform promote` is a
+#   manual step. See "Releasing" in the README.
+
+name: Deploy
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions: {}
+
+concurrency:
+  group: zapier-deploy
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Run tests
+        run: npm test
+
+  deploy:
+    name: Push to Zapier
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: zapier-deploy
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history and branches, for the ancestor check below.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+
+      - name: Require the tag to match package.json and be on main
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "v$VERSION" ]; then
+            echo "::error::Tag $TAG does not match package.json version v$VERSION"
+            exit 1
+          fi
+          git rev-parse --verify --quiet refs/remotes/origin/main > /dev/null || {
+            echo "::error::origin/main was not fetched"
+            exit 1
+          }
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::Tag $TAG is not an ancestor of origin/main"
+            exit 1
+          fi
+
+      - name: Install production dependencies
+        run: npm ci --omit=dev --ignore-scripts
+
+      - name: Install the Zapier CLI
+        run: npm i -g --ignore-scripts zapier-platform-cli@19.3.0
+
+      - name: Push to Zapier
+        env:
+          ZAPIER_DEPLOY_KEY: ${{ secrets.ZAPIER_DEPLOY_KEY }}
+        run: zapier-platform push --skip-dep-install
