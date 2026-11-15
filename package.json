@@ -31,5 +31,14 @@
   "devDependencies": {
     "jest": "29.7.0",
     "nock": "14.0.17"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setup.js"
+    ],
+    "testMatch": [
+      "<rootDir>/test/**/*.test.js"
+    ]
   }
 }

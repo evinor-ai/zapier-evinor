@@ -2,6 +2,7 @@
 
 const authentication = require('./authentication');
 const { befores, afters } = require('./lib/middleware');
+const dropdowns = require('./triggers/dropdowns');
 
 module.exports = {
   version: require('./package.json').version,
@@ -11,7 +12,11 @@ module.exports = {
   beforeRequest: [...befores],
   afterResponse: [...afters],
 
-  triggers: {},
+  triggers: {
+    [dropdowns.sensor.key]: dropdowns.sensor,
+    [dropdowns.beat.key]: dropdowns.beat,
+    [dropdowns.eventType.key]: dropdowns.eventType,
+  },
   searches: {},
   creates: {},
 };

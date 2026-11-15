@@ -3,11 +3,10 @@
 const zapier = require('zapier-platform-core');
 
 const App = require('../index');
-const { API_KEY, authData, problem, PROBLEM_HEADERS, api, nock } = require('./helpers');
+const { API_KEY, authData, problem, PROBLEM_HEADERS, api } = require('./helpers');
 
 const appTester = zapier.createAppTester(App);
 
-afterEach(() => nock.cleanAll());
 
 describe('authentication (design Decision 7)', () => {
   it('is custom auth with one required password-type api_key field', () => {
