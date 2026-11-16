@@ -64,18 +64,12 @@ describe('authentication (design Decision 7)', () => {
     expect(label).not.toContain(API_KEY.slice(0, -4));
   });
 
-  it('help text names the scopes and says File a Report needs the sales-gated REPORTS_WRITE', () => {
+  it('help text names the scopes the steps need and never REPORTS_WRITE', () => {
     const { helpText } = App.authentication.fields[0];
-    for (const scope of [
-      'SENSORS_READ',
-      'SENSORS_WRITE',
-      'BEATS_READ',
-      'REPORTS_READ',
-      'REPORTS_WRITE',
-    ]) {
+    for (const scope of ['SENSORS_READ', 'SENSORS_WRITE', 'BEATS_READ', 'REPORTS_READ']) {
       expect(helpText).toContain(scope);
     }
-    expect(helpText).toMatch(/File a Report.*REPORTS_WRITE/s);
-    expect(helpText).toMatch(/on request/i);
+    expect(helpText).not.toMatch(/REPORTS_WRITE/);
+    expect(helpText).not.toMatch(/File a Report/);
   });
 });

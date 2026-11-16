@@ -3,10 +3,14 @@
 This is the [Zapier](https://zapier.com/) integration for [Evinor](https://evinor.ai). Evinor
 watches news, regulators and public records for events that affect the companies you care about,
 such as layoffs, funding rounds, breaches and insolvencies. Use it to start a Zap the moment a
-sensor matches, to collect new entries from a beat, or to file a first-hand report from any app.
+sensor matches, to collect new entries from a beat, or to look up an entity.
+
+**This app watches Evinor; it does not file or publish reports. Evinor fires on what happens in the
+world.** A Zap runs on arbitrary triggers in other tools, so a report filed from one would be filed
+without a person deciding. Publishing reports is invite-only and is not available through Zapier.
 
 - [Connecting your account](#connecting-your-account)
-- [Triggers, search and action](#triggers-search-and-action)
+- [Triggers and search](#triggers-and-search)
 - [New Sensor Event output](#new-sensor-event-output)
 - [Security and delivery behavior](#security-and-delivery-behavior)
 - [What deduplicates](#what-deduplicates)
@@ -18,29 +22,26 @@ sensor matches, to collect new entries from a beat, or to file a first-hand repo
 Connect with an Evinor API key (it starts with `evnr_live_`). Create one in the Evinor app under
 **Settings → API keys**, and give it the scopes for the steps you use:
 
-| Scope           | Needed for                 |
-| --------------- | -------------------------- |
-| `SENSORS_READ`  | New Sensor Event           |
-| `SENSORS_WRITE` | New Sensor Event           |
-| `BEATS_READ`    | New Beat Entry             |
-| `REPORTS_READ`  | Find Entity, File a Report |
-| `REPORTS_WRITE` | File a Report              |
+| Scope           | Needed for       |
+| --------------- | ---------------- |
+| `SENSORS_READ`  | New Sensor Event |
+| `SENSORS_WRITE` | New Sensor Event |
+| `BEATS_READ`    | New Beat Entry   |
+| `REPORTS_READ`  | Find Entity      |
 
-**`REPORTS_WRITE` is sales-gated** and granted on request (hi@evinor.ai). Zapier tests the
-connection with `GET /v1/sensors?limit=1`, so a key without it still connects; File a Report then
-fails with the API's message naming the missing scope.
+Zapier tests the connection with `GET /v1/sensors?limit=1`. A step whose scope the key lacks fails
+with the API's message naming the missing scope.
 
 The connection is labelled with the key's last four characters only (for example `…AbCd`). If
 Evinor rejects a request, Zapier shows Evinor's own error message.
 
-## Triggers, search and action
+## Triggers and search
 
 | Step                           | What it does                                                                                                                                                                                                             |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **New Sensor Event** (instant) | Turning the Zap on connects its hook URL to the sensor as a Zapier destination. Turning it off disconnects it; a destination already removed in Evinor counts as success. Each delivery is verified before the Zap runs. |
 | **New Beat Entry** (polling)   | Reads the beat's entries from the last 24 hours, newest first. Reading entries is not charged. Entries without an event are skipped.                                                                                     |
-| **Find Entity** (search)       | Finds a company, person or other entity by name and returns the first match, for example to fill a File a Report role. If nothing matches, Zapier's "if nothing is found" setting decides what happens.                  |
-| **File a Report** (action)     | Pick an event type, then fill one field per role. Entity roles take an entity ID (use Find Entity), dates take `YYYY-MM-DD`, amounts take a number and a unit. `CATEGORICAL` roles cannot be filed yet.                  |
+| **Find Entity** (search)       | Finds a company, person or other entity by name and returns the first match. If nothing matches, Zapier's "if nothing is found" setting decides what happens.                                                            |
 
 **Testing New Sensor Event in the Zap editor** shows one built-in sample event with
 `is_test: true`. It makes no API call, costs nothing and needs no sensor activity.
@@ -95,13 +96,6 @@ deduplicates it on `id` (below).
   same across Evinor's retries. One event that matches several sensors arrives once per sensor; use
   `event_id` to deduplicate across sensors.
 - **New Beat Entry:** Zapier deduplicates on `id`, the entry ID, so only new entries start a run.
-- **File a Report:** identical inputs file only one report, ever. The app sends an
-  `Idempotency-Key` that is the SHA-256 of the event type, happened-at time, every role value, the
-  description, the optional **Deduplication key**, and the Zap ID when Zapier provides one. A retry
-  within 24 hours gets the original report back; a later one fails with "report already
-  submitted". **Without a Zap ID, two Zaps on the same connection with identical inputs share that
-  one report.** To file the same content again on purpose, map a changing value, such as a trigger
-  ID or a timestamp, into **Deduplication key**. It is hashed into the key and never sent to Evinor.
 
 ## Development
 

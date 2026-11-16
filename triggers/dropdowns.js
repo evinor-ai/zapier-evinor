@@ -36,8 +36,8 @@ const listSensors = async (z, bundle) => {
 };
 
 /**
- * Beats and event types are single-page lists: their endpoints take no
- * paging parameters (and reject unknown query parameters).
+ * Beats are a single-page list: the endpoint takes no paging parameters
+ * (and rejects unknown query parameters).
  */
 const singlePageList = (path) => async (z, bundle) => {
   if ((bundle.meta?.page ?? 0) > 0) {
@@ -71,15 +71,4 @@ const beat = {
   },
 };
 
-const eventType = {
-  key: 'event_type',
-  noun: 'Event Type',
-  display: hiddenDisplay('event type'),
-  operation: {
-    type: 'polling',
-    perform: singlePageList('/v1/event-types'),
-    sample: { id: '7d1e2f3a-4b5c-4d6e-8f9a-0b1c2d3e4f5a', name: 'Layoffs' },
-  },
-};
-
-module.exports = { sensor, beat, eventType };
+module.exports = { sensor, beat };

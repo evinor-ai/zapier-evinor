@@ -6,13 +6,11 @@ const HELP_TEXT = [
   'An Evinor API key (it starts with `evnr_live_`). Create one in the Evinor app under ' +
     '**Settings → API keys**. See [Authentication](https://docs.evinor.ai/authentication).',
   'Give the key the scopes for the steps you use: `SENSORS_READ` and `SENSORS_WRITE` for ' +
-    'New Sensor Event, `BEATS_READ` for New Beat Entry, and `REPORTS_READ` for Find Entity ' +
-    'and File a Report.',
-  'File a Report also needs the `REPORTS_WRITE` scope, which is sales-gated: it is granted ' +
-    'on request (hi@evinor.ai). Without it, every other step still works.',
+    'New Sensor Event, `BEATS_READ` for New Beat Entry, and `REPORTS_READ` for Find Entity.',
+  'This app watches Evinor; it does not file or publish reports.',
 ].join('\n\n');
 
-// GET /v1/sensors needs only SENSORS_READ, so a key without REPORTS_WRITE passes.
+// GET /v1/sensors needs only SENSORS_READ, so a key with just the trigger scopes passes.
 const test = async (z) => {
   const response = await z.request({ url: apiUrl('/v1/sensors'), params: { limit: 1 } });
   return response.data;

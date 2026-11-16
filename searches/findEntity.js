@@ -24,8 +24,7 @@ module.exports = {
   noun: 'Entity',
   display: {
     label: 'Find Entity',
-    description:
-      'Finds a company, person or other named entity by name, for example to fill a role in File a Report.',
+    description: 'Finds a company, person or other named entity by name.',
   },
   operation: {
     inputFields: [
