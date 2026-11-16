@@ -85,6 +85,48 @@ describe('New Beat Entry (task 4.3)', () => {
     expect(result.map((item) => item.id)).toEqual(['e2']);
   });
 
+  const sampleBundle = () => ({ ...bundle(), meta: { page: 0, isLoadingSample: true } });
+
+  it('Test trigger reads the widest window (30d) and returns at most the 3 newest entries', async () => {
+    const scope = api()
+      .post(`/v1/beats/${BEAT_ID}/entries`, { last: '30d', limit: 50 })
+      .reply(
+        200,
+        page([
+          entry('e5', event('ev5', 'Five.')),
+          entry('e4', null),
+          entry('e3', event('ev3', 'Three.')),
+          entry('e2', event('ev2', 'Two.')),
+          entry('e1', event('ev1', 'One.')),
+        ]),
+      );
+
+    const result = await appTester(trigger().operation.perform, sampleBundle());
+    expect(scope.isDone()).toBe(true);
+    expect(result.map((item) => item.id)).toEqual(['e5', 'e3', 'e2']);
+  });
+
+  it('Test trigger on a beat with no entries falls back to the static sample', async () => {
+    api()
+      .post(`/v1/beats/${BEAT_ID}/entries`, { last: '30d', limit: 50 })
+      .reply(200, page([entry('e1', null)]));
+
+    const result = await appTester(trigger().operation.perform, sampleBundle());
+    expect(result).toEqual([{ ...trigger().operation.sample, beat_id: BEAT_ID }]);
+    const outputKeys = trigger().operation.outputFields.map((field) => field.key);
+    expect(Object.keys(result[0]).sort()).toEqual([...outputKeys].sort());
+  });
+
+  it('normal polling does not cap or fall back', async () => {
+    const scope = api()
+      .post(`/v1/beats/${BEAT_ID}/entries`, { last: '24h', limit: 50 })
+      .reply(200, page([entry('e1', null)]));
+
+    const result = await appTester(trigger().operation.perform, bundle());
+    expect(scope.isDone()).toBe(true);
+    expect(result).toEqual([]);
+  });
+
   it('surfaces the problem detail', async () => {
     api()
       .post(`/v1/beats/${BEAT_ID}/entries`)

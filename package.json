@@ -1,6 +1,6 @@
 {
   "name": "zapier-evinor",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Evinor app for Zapier: start Zaps from verified Evinor sensor events and beat entries, and find entities.",
   "license": "MIT",
   "private": true,

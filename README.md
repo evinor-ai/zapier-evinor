@@ -40,7 +40,7 @@ Evinor rejects a request, Zapier shows Evinor's own error message.
 | Step                           | What it does                                                                                                                                                                                                             |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **New Sensor Event** (instant) | Turning the Zap on connects its hook URL to the sensor as a Zapier destination. Turning it off disconnects it; a destination already removed in Evinor counts as success. Each delivery is verified before the Zap runs. |
-| **New Beat Entry** (polling)   | Reads the beat's entries from the last 24 hours, newest first. Reading entries is not charged. Entries without an event are skipped.                                                                                     |
+| **New Beat Entry** (polling)   | Reads the beat's entries from the last 24 hours, newest first. Reading entries is not charged. Entries without an event are skipped. The test step looks back 30 days (3 newest entries) so quiet beats can be tested.   |
 | **Find Entity** (search)       | Finds a company, person or other entity by name and returns the first match. If nothing matches, Zapier's "if nothing is found" setting decides what happens.                                                            |
 
 **Testing New Sensor Event in the Zap editor** shows one built-in sample event with
