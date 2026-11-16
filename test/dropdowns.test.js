@@ -22,8 +22,12 @@ const runWithCursor = (perform, bundle, store) =>
 const sensor = (id, name, enabled = true) => ({ id, object: 'sensor', name, enabled });
 
 describe('hidden dropdown triggers (task 4.1)', () => {
+  it('has no event-type dropdown (nothing files reports)', () => {
+    expect(App.triggers.event_type).toBeUndefined();
+  });
+
   it('are hidden polling triggers', () => {
-    for (const key of ['sensor', 'beat', 'event_type']) {
+    for (const key of ['sensor', 'beat']) {
       expect(App.triggers[key]).toBeDefined();
       expect(App.triggers[key].display.hidden).toBe(true);
       expect(App.triggers[key].operation.type ?? 'polling').toBe('polling');
@@ -74,28 +78,9 @@ describe('hidden dropdown triggers (task 4.1)', () => {
     expect(result).toEqual([{ id: 'b1', name: 'Supplier risk' }]);
   });
 
-  it('lists event types (one page; GET /v1/event-types takes no parameters)', async () => {
-    api()
-      .get('/v1/event-types')
-      .reply(200, {
-        data: [
-          { id: 'et1', object: 'event_type', code_name: 'LAYOFF', name: 'Layoffs', roles: [] },
-        ],
-        has_more: false,
-        next_cursor: null,
-      });
-    const result = await appTester(App.triggers.event_type.operation.perform, {
-      authData: authData(),
-      meta: { page: 0 },
-    });
-    expect(result).toEqual([{ id: 'et1', name: 'Layoffs' }]);
-  });
-
   it('returns nothing for a later page of a single-page list', async () => {
-    for (const key of ['beat', 'event_type']) {
-      await expect(
-        appTester(App.triggers[key].operation.perform, { authData: authData(), meta: { page: 1 } }),
-      ).resolves.toEqual([]);
-    }
+    await expect(
+      appTester(App.triggers.beat.operation.perform, { authData: authData(), meta: { page: 1 } }),
+    ).resolves.toEqual([]);
   });
 });

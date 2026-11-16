@@ -6,7 +6,6 @@ const dropdowns = require('./triggers/dropdowns');
 const newSensorEvent = require('./triggers/newSensorEvent');
 const newBeatEntry = require('./triggers/newBeatEntry');
 const findEntity = require('./searches/findEntity');
-const fileReport = require('./creates/fileReport');
 
 module.exports = {
   version: require('./package.json').version,
@@ -24,12 +23,8 @@ module.exports = {
     [newBeatEntry.key]: newBeatEntry,
     [dropdowns.sensor.key]: dropdowns.sensor,
     [dropdowns.beat.key]: dropdowns.beat,
-    [dropdowns.eventType.key]: dropdowns.eventType,
   },
   searches: {
     [findEntity.key]: findEntity,
-  },
-  creates: {
-    [fileReport.key]: fileReport,
   },
 };
