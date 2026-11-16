@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- New Beat Entry: Test trigger looks back further so quiet beats can be tested.
+
 ## 1.1.0
 
 - Removed File a Report. This app watches Evinor; it does not file or publish reports. Evinor fires

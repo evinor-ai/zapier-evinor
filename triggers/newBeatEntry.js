@@ -5,6 +5,25 @@ const { apiUrl, segment } = require('../lib/api');
 // The API's maximum page size for beat entries.
 const PAGE_SIZE = 50;
 
+// "Test trigger" reads the widest `last` window the API accepts (24h | 7d |
+// 30d), so a quiet beat still has something to show.
+const SAMPLE_WINDOW = '30d';
+const SAMPLE_COUNT = 3;
+
+const SAMPLE = {
+  id: '0c9d8e7f-6a5b-4c3d-9e2f-1a0b9c8d7e6f',
+  beat_id: '5e8f1a2b-3c4d-4e5f-8a9b-0c1d2e3f4a5b',
+  matched_clause_id: '1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e',
+  occurred_at: '2026-04-01T12:00:00.000Z',
+  added_at: '2026-04-01T12:05:00.000Z',
+  backfilled: false,
+  event_id: 'incident-golden-1',
+  event_type: 'LAYOFF',
+  sentence: 'TechCorp laid off 200 people.',
+  happened_at: '2026-04-01',
+  event_date: '2026-04-01T00:00:00.000Z',
+};
+
 const mapEntry = (entry, beatId) => ({
   id: entry.id,
   beat_id: beatId,
@@ -23,18 +42,27 @@ const mapEntry = (entry, beatId) => ({
  * A window read of the last 24 hours, newest first. Reading entries is not
  * charged. Zapier deduplicates on `id` (the entry id), so only new entries
  * start a Zap run. An entry whose event is null has nothing to act on.
+ *
+ * When Zapier loads a sample ("Test trigger"), the read looks back 30 days and
+ * returns at most the 3 newest entries; a beat with none falls back to the
+ * static sample.
  */
 const perform = async (z, bundle) => {
   const beatId = String(bundle.inputData.beat_id);
+  const isLoadingSample = bundle.meta?.isLoadingSample === true;
   const response = await z.request({
     method: 'POST',
     url: apiUrl(`/v1/beats/${segment(z, beatId)}/entries`),
-    body: { last: '24h', limit: PAGE_SIZE },
+    body: { last: isLoadingSample ? SAMPLE_WINDOW : '24h', limit: PAGE_SIZE },
   });
   const { data = [] } = response.data;
-  return data
+  const entries = data
     .filter((entry) => entry.event !== null && entry.event !== undefined)
     .map((entry) => mapEntry(entry, beatId));
+  if (!isLoadingSample) {
+    return entries;
+  }
+  return entries.length > 0 ? entries.slice(0, SAMPLE_COUNT) : [{ ...SAMPLE, beat_id: beatId }];
 };
 
 module.exports = {
@@ -56,19 +84,7 @@ module.exports = {
       },
     ],
     perform,
-    sample: {
-      id: '0c9d8e7f-6a5b-4c3d-9e2f-1a0b9c8d7e6f',
-      beat_id: '5e8f1a2b-3c4d-4e5f-8a9b-0c1d2e3f4a5b',
-      matched_clause_id: '1b2c3d4e-5f6a-4b7c-8d9e-0f1a2b3c4d5e',
-      occurred_at: '2026-04-01T12:00:00.000Z',
-      added_at: '2026-04-01T12:05:00.000Z',
-      backfilled: false,
-      event_id: 'incident-golden-1',
-      event_type: 'LAYOFF',
-      sentence: 'TechCorp laid off 200 people.',
-      happened_at: '2026-04-01',
-      event_date: '2026-04-01T00:00:00.000Z',
-    },
+    sample: SAMPLE,
     outputFields: [
       { key: 'id', label: 'Entry ID' },
       { key: 'beat_id', label: 'Beat ID' },
